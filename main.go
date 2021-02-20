@@ -18,7 +18,7 @@ import (
 //go:embed client/build/* client/build/static/css/* client/build/static/js/*
 var content embed.FS
 var version = "dev"
-var build = "debug"
+var build string
 
 func main() {
 	fmt.Printf("Starting SQLPad - %s-%s\n", version, build)
@@ -119,7 +119,9 @@ func main() {
 		panic(err)
 	}
 
-	r.NoRoute(file_server.Serve("/", "/", sub))
+	if build == "release" {
+		r.NoRoute(file_server.Serve("/", "/", sub))
+	}
 
 	listenAddress := os.Getenv("LISTEN_ADDR")
 	if listenAddress == "" {
