@@ -12,7 +12,7 @@ type Session = {
 }
 
 export async function createSession(url: string): Promise<Session> {
-    return processResponse(await fetch("/login", {
+    return processResponse(await fetch("/api/session", {
         method: "POST",
         body: JSON.stringify({url})
     }))
@@ -24,7 +24,7 @@ export type Result = {
 }
 
 export async function executeSql(sessionId: string, sql: string): Promise<Result> {
-    return processResponse(await fetch(`/session/${sessionId}/execute`, {
+    return processResponse(await fetch(`/api/session/${sessionId}/execute`, {
         method: "POST",
         body: JSON.stringify({sql})
     }));
