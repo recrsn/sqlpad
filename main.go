@@ -1,38 +1,34 @@
 package main
 
 import (
-	"github.com/gin-contrib/cors"
+	"database/sql"
+	"embed"
+	"fmt"
+	"github.com/agathver/sqlpad/file_server"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	_ "github.com/lib/pq"
+	"io/fs"
 	"net/http"
 	"net/url"
+	"os"
 	"reflect"
-	"time"
-
-	"database/sql"
-	_ "github.com/lib/pq"
 )
 
-func main() {
+//go:embed client/build/* client/build/static/css/* client/build/static/js/*
+var content embed.FS
+var version = "dev"
+var build = "debug"
 
+func main() {
+	fmt.Printf("Starting SQLPad - %s-%s\n", version, build)
+
+	gin.SetMode(build)
 	sessionStore := map[string]*sql.DB{}
 
 	r := gin.Default()
 
-	r.Use(cors.New(cors.Config{
-		AllowOrigins: []string{"*"},
-		AllowMethods: []string{"GET", "POST", "PUT", "PATCH"},
-		AllowHeaders: []string{"*"},
-		MaxAge:       12 * time.Hour,
-	}))
-
-	r.GET("/ping", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "pong",
-		})
-	})
-
-	r.POST("/login", func(c *gin.Context) {
+	r.POST("/api/session", func(c *gin.Context) {
 
 		type loginRequest struct {
 			URL string `json:"url"`
@@ -68,7 +64,7 @@ func main() {
 		}
 	})
 
-	r.POST("/session/:session_id/execute", func(c *gin.Context) {
+	r.POST("/api/session/:session_id/execute", func(c *gin.Context) {
 		sessionID := c.Params.ByName("session_id")
 
 		type execReq struct {
@@ -116,11 +112,28 @@ func main() {
 		})
 
 	})
-	err := r.Run()
+
+	sub, err := fs.Sub(content, "client/build")
 
 	if err != nil {
 		panic(err)
 	}
+
+	r.NoRoute(file_server.Serve("/", "/", sub))
+
+	listenAddress := os.Getenv("LISTEN_ADDR")
+	if listenAddress == "" {
+		listenAddress = "127.0.0.1:8080"
+	}
+
+	fmt.Printf("Starting server at http://%s\n", listenAddress)
+	err = r.Run(listenAddress)
+
+	if err != nil {
+		panic(err)
+	}
+
+
 }
 
 func makeRow(types []*sql.ColumnType) []interface{} {
