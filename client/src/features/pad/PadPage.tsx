@@ -1,23 +1,26 @@
-import "codemirror/mode/sql/sql";
-import React, {useEffect} from "react";
-import {useDispatch, useSelector} from "react-redux";
-import {RootState} from "../../app/store";
+import { useEffect } from "react";
 import Cell from "./Cell";
-import styles from './PadPage.module.css';
-import {newCell, PadState} from "./padSlice";
+import usePadStore from "./padStore";
+import { ReactComponent as AddCircleOutline } from '../../images/add-circle-outline.svg';
 
 export default function PadPage() {
-    const {cells} = useSelector<RootState, PadState>(state => state.pad);
-    const dispatch = useDispatch()
+    const [cells, addCell] = usePadStore(state => [state.cells, state.addCell]);
 
     useEffect(() => {
-        dispatch(newCell())
-    }, [dispatch])
+        if (cells.length === 0) {
+            addCell();
+        }
+    }, [])
 
     return (
         <div className="min-h-screen pt-20 bg-gray-50">
-            <div className={`${styles.pad} container mx-auto bg-white rounded shadow-md p-5`}>
-                {cells.map(cellId => <Cell key={cellId} id={cellId}/>)}
+            <div className="container mx-auto bg-white rounded shadow-md p-2 mb-2">
+                <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" onClick={addCell}>
+                    <AddCircleOutline width={16} height={16} />
+                </button>
+            </div>
+            <div className={`container mx-auto bg-white rounded shadow-md px-2`}>
+                {cells.map(cellId => <Cell key={cellId} id={cellId} />)}
             </div>
         </div>
     )

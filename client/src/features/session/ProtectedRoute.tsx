@@ -1,25 +1,14 @@
-import React from "react";
-import {Redirect, Route, RouteProps} from "react-router-dom";
-import {useSession} from "./sessionHooks";
+import { Navigate, Route, RouteProps, useLocation } from "react-router-dom";
+import useSessionStore from "./sessionStore";
 
-export default function ProtectedRoute({children, ...rest}: RouteProps) {
-    const {isActive} = useSession();
+export default function ProtectedRoute({ children, ...rest }: RouteProps) {
+    const isActive = !!useSessionStore(state => state.sessionId);
+    const location = useLocation();
 
     return (
         <Route
             {...rest}
-            render={({location}) => {
-                if (isActive) {
-                    return (children);
-                }
-
-                return <Redirect
-                    to={{
-                        pathname: `/login`,
-                        search: `?next=${location.pathname}`
-                    }}
-                />;
-            }}
+            element={isActive ? children : <Navigate to={`/login?next=${encodeURIComponent(location.pathname)}`} />}
         />
     );
 }

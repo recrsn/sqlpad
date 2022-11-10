@@ -4,18 +4,19 @@ import (
 	"database/sql"
 	"embed"
 	"fmt"
-	"github.com/agathver/sqlpad/file_server"
-	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
-	_ "github.com/lib/pq"
 	"io/fs"
 	"net/http"
 	"net/url"
 	"os"
 	"reflect"
+
+	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
+	_ "github.com/lib/pq"
+	"github.com/recrsn/sqlpad/file_server"
 )
 
-//go:embed client/build/* client/build/static/css/* client/build/static/js/*
+//go:embed client/build/*
 var content embed.FS
 var version = "dev"
 var build string
@@ -134,7 +135,6 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-
 
 }
 
